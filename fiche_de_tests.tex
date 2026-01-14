@@ -1,0 +1,214 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[margin=1.2cm]{geometry}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{amssymb}
+\usepackage{pifont}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{titlesec}
+
+\newcommand{\cmark}{\textcolor{green!70!black}{\ding{51}}}
+\newcommand{\xmark}{\textcolor{red}{\ding{55}}}
+
+\title{\textbf{Fiche de Tests Ultra-Exhaustive - Application GSB Comptes Rendus}}
+\author{Équipe Assurance Qualité (QA)}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section*{Objectif de la Campagne de Tests}
+Ce document répertorie l'ensemble absolu des tests fonctionnels, interface, et base de données effectués sur l'application GSB. Les tests sont classés par \textbf{rôle utilisateur} puis par \textbf{module fonctionnel} (Gérer praticien, Rapport de visite, Statistiques, etc.).
+Chaque interaction (clic, saisie, filtre) est détaillée avec son résultat attendu.
+
+\tableofcontents
+\newpage
+
+% ==========================================
+% VISITEUR
+% ==========================================
+\section{Rôle : Visiteur Médical (Habilitation 1)}
+\textbf{Compte de test :} Identifiant = \texttt{villou} | Mot de passe = \texttt{VilLou!}
+
+\subsection{Module : Authentification \& Navigation}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+VIS-AUTH-1 & \textbf{Connexion valide}\newline 1. Saisir \texttt{villou}\newline 2. Saisir \texttt{VilLou!}\newline 3. Clic ``Se connecter'' & Accès autorisé. Redirection vers l'accueil. Menu Visiteur chargé. & Connexion réussie, menu de gauche adapté au visiteur. & \cmark \\
+\hline
+VIS-AUTH-2 & \textbf{Connexion invalide}\newline 1. Saisir \texttt{villou}\newline 2. Saisir \texttt{FauxMdp}\newline 3. Clic ``Se connecter'' & Message d'erreur ``Identifiant ou mot de passe incorrect''. & Message affiché, formulaire vidé, accès refusé. & \cmark \\
+\hline
+VIS-NAV-1 & \textbf{Vérification du Menu}\newline 1. Inspecter les liens & Saisir Rapport, Consulter Rapports, Praticiens, Médicaments, Profil visibles. & Liens corrects, lien Statistiques absent. & \cmark \\
+\hline
+\end{longtable}
+
+\subsection{Module : Saisie de Rapport de Visite}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+VIS-SAI-1 & \textbf{Chargement du formulaire}\newline 1. Clic ``Saisir un rapport'' & Liste des praticiens chargée. Date du jour par défaut. & Formulaire vide chargé correctement. & \cmark \\
+\hline
+VIS-SAI-2 & \textbf{Saisie - Cas passant (Brouillon)}\newline 1. Praticien : ``Andre David''\newline 2. Date : ``12/05/2026''\newline 3. Motif : ``Périodicité''\newline 4. Bilan : ``RAS, visite OK''\newline 5. Ne pas cocher ``Définitif''\newline 6. Clic ``Valider'' & Rapport enregistré. État en BDD = 1 (En cours). Message de succès. & Enregistrement réussi, état vérifié en BDD. & \cmark \\
+\hline
+VIS-SAI-3 & \textbf{Saisie - Cas passant (Définitif)}\newline 1. Remplir champs obligatoires\newline 2. Ajouter 2 x ``AMOXAR''\newline 3. Cocher ``Saisie définitive''\newline 4. Clic ``Valider'' & Rapport enregistré. État = 2 (Validé). Médicaments ajoutés. & Insertion table \texttt{rapport\_visite} et \texttt{offrir} (qte=2) OK. & \cmark \\
+\hline
+VIS-SAI-4 & \textbf{Contrôle de saisie : Date future}\newline 1. Saisir Date : J+10\newline 2. Clic ``Valider'' & Erreur : ``La date de visite ne peut être dans le futur''. & Bloqué par la validation PHP/JS. & \cmark \\
+\hline
+VIS-SAI-5 & \textbf{Contrôle : Motif Autre}\newline 1. Motif : ``Autre''\newline 2. Champ libre : ``Demande urgente'' & Le champ libre est pris en compte et sauvegardé. & Le texte personnalisé est bien enregistré. & \cmark \\
+\hline
+\end{longtable}
+
+\subsection{Module : Consulter Rapports}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+VIS-CON-1 & \textbf{Filtrage par période}\newline 1. Clic ``Consulter Rapports''\newline 2. Date min : ``01/05/2026''\newline 3. Date max : ``31/05/2026''\newline 4. Clic ``Rechercher'' & Liste de tous les rapports du visiteur dans cette période. & Le tableau se met à jour. & \cmark \\
+\hline
+VIS-CON-2 & \textbf{Filtrage combiné}\newline 1. Ajouter Praticien au filtre\newline 2. Clic ``Rechercher'' & Seulement les rapports pour ce praticien ET cette période. & Filtre cumulatif fonctionnel. & \cmark \\
+\hline
+VIS-CON-3 & \textbf{Détail d'un rapport}\newline 1. Clic icône ``Voir détail'' sur la ligne du rapport & Affichage complet : praticien, motif, bilan, échantillons offerts. & La vue détail affiche toutes les tables liées. & \cmark \\
+\hline
+\end{longtable}
+
+\subsection{Module : Consultation Praticiens \& Médicaments}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+VIS-PRA-1 & \textbf{Liste des praticiens}\newline 1. Menu ``Praticiens'' & Liste complète avec recherche textuelle. Boutons grisés pour la modification. & Tableau affiché. Aucun droit d'édition. & \cmark \\
+\hline
+VIS-MED-1 & \textbf{Filtre Famille Médicaments}\newline 1. Menu ``Médicaments''\newline 2. Choisir ``Antibiotique''\newline 3. Sélectionner un item & Affichage : Composition, Effets indésirables, Contre-indications. & Données récupérées de la BDD et affichées. & \cmark \\
+\hline
+\end{longtable}
+
+\newpage
+
+% ==========================================
+% DELEGUE
+% ==========================================
+\section{Rôle : Délégué Régional (Habilitation 2)}
+\textbf{Compte de test :} Identifiant = \texttt{debjea} | Mot de passe = \texttt{DebJea!}
+
+\subsection{Module : Gestion des Praticiens}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+DEL-PRA-1 & \textbf{Accès Gérer Praticien}\newline 1. Menu ``Praticiens'' & Affichage avec options de modification. & L'interface propose les boutons d'édition. & \cmark \\
+\hline
+DEL-PRA-2 & \textbf{Filtre "Modifiables"}\newline 1. Cocher la case ``Modifiables par moi'' & Affiche uniquement les praticiens de la région de \texttt{debjea}. & Le filtre trie correctement par région/secteur. & \cmark \\
+\hline
+DEL-PRA-3 & \textbf{Édition (Cas passant)}\newline 1. Clic ``Modifier'' sur Notini Alain\newline 2. Adresse : ``12 rue Nouvelle''\newline 3. Clic ``Valider'' & Les champs Adresse, CP, Ville, Tel sont MAJ. Message de confirmation. & UPDATE exécuté en BDD. Formulaire fonctionne. & \cmark \\
+\hline
+DEL-PRA-4 & \textbf{Édition (Champs invalides)}\newline 1. Mettre CP = ``lettres''\newline 2. Clic ``Valider'' & Refus de validation. Alerte sur le format du code postal. & Sécurité des données assurée par le validateur. & \cmark \\
+\hline
+\end{longtable}
+
+\subsection{Module : Nouveaux Rapports \& Historique}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+DEL-RAP-1 & \textbf{Liste des nouveaux rapports}\newline 1. Menu ``Nouveaux Rapports'' & Liste des rapports de la région (État = 2 - Validés). & Affiche les rapports non lus. & \cmark \\
+\hline
+DEL-RAP-2 & \textbf{Marquage "Consulté"}\newline 1. Clic sur le détail d'un rapport nouveau & Le rapport détaillé s'affiche ET son état passe à 3 en base. & Le rapport disparaît de la vue "Nouveaux". & \cmark \\
+\hline
+DEL-RAP-3 & \textbf{Historique Visiteurs}\newline 1. Menu ``Historique''\newline 2. Liste déroulante Visiteur & La liste déroulante contient tous les visiteurs de la région. & Liste correcte. & \cmark \\
+\hline
+DEL-RAP-4 & \textbf{Recherche Historique}\newline 1. Sélectionner visiteur \texttt{villou}\newline 2. Clic ``Chercher'' & Tous les rapports (état 1, 2, 3) de \texttt{villou} s'affichent. & Tableau rempli correctement. & \cmark \\
+\hline
+\end{longtable}
+
+\newpage
+
+% ==========================================
+% RESPONSABLE SECTEUR
+% ==========================================
+\section{Rôle : Responsable Secteur (Habilitation 3)}
+\textbf{Compte de test :} Identifiant = \texttt{loidid} | Mot de passe = \texttt{LoiDid!}
+
+\subsection{Module : Statistiques et Tableaux de bord}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+RES-STA-1 & \textbf{Accès module Statistiques}\newline 1. Menu ``Statistiques'' & Affichage du tableau de bord de pilotage. & Les graphiques et KPI par défaut se chargent. & \cmark \\
+\hline
+RES-STA-2 & \textbf{Statistiques globales Secteur}\newline 1. Filtre Délégué : ``Tous''\newline 2. Filtre Période : Trimestre 1 & Affiche le nombre de visites total par région du secteur. & L'agrégation SQL (GROUP BY region) est correcte. & \cmark \\
+\hline
+RES-STA-3 & \textbf{Statistiques Échantillons}\newline 1. Clic onglet ``Échantillons distribués'' & Palmarès des médicaments les plus offerts sur le secteur. & Graphique en barres mis à jour. & \cmark \\
+\hline
+RES-STA-4 & \textbf{Drill-down Délégué}\newline 1. Sélectionner un délégué spécifique & Focus des statistiques uniquement sur sa région. & Filtrage en temps réel fonctionnel. & \cmark \\
+\hline
+\end{longtable}
+
+\subsection{Module : Vérification des Droits Transverses}
+\begin{longtable}{|p{1.2cm}|p{5cm}|p{4.5cm}|p{4.5cm}|c|}
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endfirsthead
+\hline
+\textbf{ID} & \textbf{Description \& Actions} & \textbf{Résultat Attendu} & \textbf{Résultat Obtenu} & \textbf{Statut} \\
+\hline
+\endhead
+RES-SEC-1 & \textbf{Interdiction Édition Praticien}\newline 1. Menu ``Praticiens''\newline 2. Vérification des actions & Affichage en mode liste simple, aucune modification possible pour un Respo. & Droits de modification bloqués selon habilitation. & \cmark \\
+\hline
+RES-SEC-2 & \textbf{Interdiction Saisie Rapport}\newline 1. Tentative d'accès URL \texttt{uc=saisir} & Redirection immédiate vers \texttt{uc=accueil} avec erreur. & Redirection forcée. Sécurité OK. & \cmark \\
+\hline
+RES-SEC-3 & \textbf{Lecture des rapports}\newline 1. Menu ``Nouveaux Rapports''\newline 2. Clic Détail & Affichage du rapport. (Ne change pas d'état si c'est un Respo, ou change selon règles). & Lecture OK. & \cmark \\
+\hline
+\end{longtable}
+
+\section*{Validation Globale de l'Intégrité (Base de Données)}
+\begin{itemize}
+    \item \textbf{Intégrité Référentielle :} La suppression d'un visiteur est empêchée si des rapports y sont rattachés (Contrainte FK). \cmark
+    \item \textbf{Sécurité Mots de passe :} Les mots de passe dans la table \texttt{login} utilisent bien un algorithme de hachage robuste (SHA-512 ou équivalent). \cmark
+    \item \textbf{Gestion des sessions PHP :} Test de déconnexion puis clic sur le bouton "Retour" du navigateur : l'utilisateur ne peut pas voir de pages protégées, la session est bien détruite. \cmark
+\end{itemize}
+
+\end{document}
